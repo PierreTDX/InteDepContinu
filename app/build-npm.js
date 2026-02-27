@@ -23,6 +23,9 @@ try {
     console.log("📝 Création du package.json pour CommonJS...");
     fs.writeFileSync('lib/package.json', JSON.stringify({ type: 'commonjs' }, null, 2));
 
+    console.log("📄 Copie du README.md...");
+    fs.copyFileSync('../README.md', './README.md');
+
     console.log("✨ Nettoyage final des résidus...");
     execSync('rimraf lib/App.css lib/index.css lib/pages lib/assets', { stdio: 'inherit' });
 

@@ -1,0 +1,16 @@
+# Ignorer les sources et configs de dev
+src/
+public/
+cypress/
+test/
+coverage/
+.github/
+
+# Configs
+vite.config.js
+vite.lib.config.js
+eslint.config.js
+jsconfig.json
+
+# Logs
+*.log

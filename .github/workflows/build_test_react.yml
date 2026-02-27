@@ -57,20 +57,6 @@ jobs:
           files: app/coverage/lcov.info
           fail_ci_if_error: 'true'
 
-      - name: build and publish package on NPM
-        run: |
-          cd app
-          git config --global user.email "pierre.tondeux@gmail.com"
-          git config --global user.name "pierretdx"
-          npm run build-npm
-          npm version patch
-          npm publish
-          git add .
-          git commit -m "updated version"
-          git push
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v3
@@ -80,8 +66,55 @@ jobs:
         with:
           path: ./app/dist
 
-  deploy:
+  publish-npm:
     needs: build_test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: cd app && pnpm install --frozen-lockfile
+
+      - name: Check Version & Publish if New
+        run: |
+          cd app
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          LOCAL_VERSION=$(node -p "require('./package.json').version")
+          
+          # Récupère la version distante (suppress error si package inexistant)
+          NPM_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "0.0.0")
+          
+          echo "Local version: $LOCAL_VERSION"
+          echo "NPM version: $NPM_VERSION"
+          
+          if [ "$LOCAL_VERSION" != "$NPM_VERSION" ]; then
+            echo "New version detected. Building and Publishing..."
+            npm run build-npm
+            npm publish
+          else
+            echo "Version $LOCAL_VERSION already published. Skipping publish."
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  deploy:
+    needs: publish-npm
+    if: always()
     permissions:
       pages: write
       id-token: write

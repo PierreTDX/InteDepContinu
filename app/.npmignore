@@ -7,8 +7,6 @@ coverage/
 .github/
 
 # Configs
-vite.config.js
-vite.lib.config.js
 eslint.config.js
 jsconfig.json
 

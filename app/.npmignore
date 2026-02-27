@@ -3,6 +3,7 @@ src/
 public/
 cypress/
 coverage/
+test/
 
 # Configuration et Scripts
 vite.config.js
@@ -11,6 +12,10 @@ jsdoc.json
 eslint.config.js
 build-npm.js
 NPM_README.md
+babel.config.cjs
+cypress.config.js
+jest.config.cjs
+index.html
 
 # Git et GitHub
 .git/

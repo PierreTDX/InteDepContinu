@@ -1,7 +1,7 @@
 {
   "name": "ptdx-ci-cd-ynov",
   "private": false,
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "homepage": "https://pierretdx.github.io/InteDepContinu/",
   "main": "./lib/index.js",
@@ -22,7 +22,7 @@
     "test": "jest --coverage",
     "doc": "jsdoc -R ../README.md -c jsdoc.json -r -d ./public/docs --private",
     "cypress": "cypress open",
-    "build-npm-ci": "rimraf lib && npx babel src --out-dir lib --copy-files --ignore \"**/pages,**/main.jsx,**/*.test.js,**/*.spec.js\""
+    "build-npm-ci": "rimraf lib && npx babel src --out-dir lib --copy-files --ignore \"**/pages,**/main.jsx,**/App.jsx,**/App.css,**/index.css,**/*.test.js,**/*.spec.js,**/vite-env.d.ts\""
   },
   "dependencies": {
     "axios": "^1.13.5",

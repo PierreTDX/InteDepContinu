@@ -1,5 +1,5 @@
 TN:
-SF:src\components\PersonForm.jsx
+SF:src/components/PersonForm.jsx
 FN:22,PersonForm
 FN:42,(anonymous_1)
 FN:44,(anonymous_2)
@@ -106,7 +106,7 @@ BRF:27
 BRH:27
 end_of_record
 TN:
-SF:src\domain\module.js
+SF:src/domain/module.js
 FN:7,calculateAge
 FNF:1
 FNH:1
@@ -140,7 +140,7 @@ BRF:10
 BRH:10
 end_of_record
 TN:
-SF:src\domain\validator.js
+SF:src/domain/validator.js
 FN:15,validatePerson
 FN:56,validateAge
 FN:80,validateZipCode
@@ -273,7 +273,7 @@ BRF:63
 BRH:63
 end_of_record
 TN:
-SF:src\domain\services\personService.js
+SF:src/domain/services/personService.js
 FN:17,fetchUsers
 FN:20,(anonymous_1)
 FN:44,createUser
@@ -323,7 +323,7 @@ BRF:19
 BRH:19
 end_of_record
 TN:
-SF:src\utils\errorMessages.js
+SF:src/utils/errorMessages.js
 FN:37,getErrorMessage
 FNF:1
 FNH:1

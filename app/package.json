@@ -13,9 +13,6 @@
       "default": "./lib/index.js"
     }
   },
-  "files": [
-    "lib"
-  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",

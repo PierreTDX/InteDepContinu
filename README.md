@@ -1,4 +1,5 @@
-# Test Cycle TDD – React + Vite
+# Inte et dep continu  
+MAJ par Pierre TONDEUX le 27/02/2026
 
 Ce projet est un exemple d’application React configurée avec Vite, intégrant :
 
@@ -8,6 +9,9 @@ Ce projet est un exemple d’application React configurée avec Vite, intégrant
 - Génération automatique de documentation technique avec JSDoc
 - Workflow CI/CD GitHub Actions pour build, tests et déploiement sur GitHub Pages
 - Gestion d’état global pour la liste des utilisateurs et persistance via localStorage
+- Création d'un package npm inclu dans la CI/CD
+
+
 
 ## Liens rapides
 
@@ -15,6 +19,7 @@ Ce projet est un exemple d’application React configurée avec Vite, intégrant
 - Application déployée : https://pierretdx.github.io/InteDepContinu/
 - Documentation technique (JSDoc) : https://pierretdx.github.io/InteDepContinu/docs/
 - Tableau de bord Codecov : https://app.codecov.io/gh/PierreTDX/InteDepContinu
+- Package NPM : https://www.npmjs.com/package/ptdx-ci-cd-ynov
 
 ## Prérequis
 

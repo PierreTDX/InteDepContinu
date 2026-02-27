@@ -1,0 +1,21 @@
+# Source et Tests
+src/
+public/
+cypress/
+coverage/
+
+# Configuration et Scripts
+vite.config.js
+jest.config.js
+jsdoc.json
+eslint.config.js
+build-npm.js
+
+# Git et GitHub
+.git/
+.github/
+.gitignore
+
+# Logs et Dépendances
+node_modules/
+*.log

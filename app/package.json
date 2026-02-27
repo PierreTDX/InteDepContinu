@@ -3,7 +3,7 @@
   "private": false,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://github.com/Ynov-M1/Test_cycle_TD/app",
+  "homepage": ".",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -129,6 +129,7 @@ jobs:
         run: |
           cd app
           LOCAL_VERSION=$(node -p "require('./package.json').version")
+          echo "✅ Successfully published version $LOCAL_VERSION to NPM!"
           echo "✅ **Successfully published version $LOCAL_VERSION to NPM!**" >> $GITHUB_STEP_SUMMARY
 
   deploy:

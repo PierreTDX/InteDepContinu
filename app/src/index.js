@@ -1,4 +1,4 @@
-import PersonForm from './components/PersonForm.jsx';
+import PersonForm from './components/PersonForm';
 
 export { PersonForm };
 export default PersonForm;

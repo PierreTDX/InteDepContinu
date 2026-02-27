@@ -11,10 +11,10 @@ Ce projet est un exemple d’application React configurée avec Vite, intégrant
 
 ## Liens rapides
 
-- Dépôt GitHub : https://github.com/Ynov-M1/Test_cycle_TDD
-- Application déployée : https://ynov-m1.github.io/Test_cycle_TDD/
-- Documentation technique (JSDoc) : https://ynov-m1.github.io/Test_cycle_TDD/docs/
-- Tableau de bord Codecov : https://codecov.io/gh/Ynov-M1/Test_cycle_TDD
+- Dépôt GitHub : https://github.com/PierreTDX/InteDepContinu
+- Application déployée : https://pierretdx.github.io/InteDepContinu/
+- Documentation technique (JSDoc) : https://pierretdx.github.io/InteDepContinu/docs/
+- Tableau de bord Codecov : https://app.codecov.io/gh/PierreTDX/InteDepContinu
 
 ## Prérequis
 
@@ -26,7 +26,7 @@ Ce projet est un exemple d’application React configurée avec Vite, intégrant
 
 Clonez le dépôt :
 ```
-git clone https://github.com/Ynov-M1/Test_cycle_TDD.git
+git clone https://github.com/PierreTDX/InteDepContinu.git
 ```
 
 Accédez au dossier de l’application :

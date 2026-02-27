@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import { fetchUsers, createUser } from "./domain/services/personService";
-import {errorMessages} from "./utils/errorMessages.js";
+import { errorMessages } from "./utils/errorMessages.js";
 
 /**
  * Main App Component
@@ -57,9 +57,9 @@ function App() {
     };
 
     return (
-        <BrowserRouter basename="/Test_cycle_TDD/">
+        <BrowserRouter basename="/InteDepContinu/">
             <Routes>
-                <Route path="/" element={<Home persons={persons} loading={loading} serverError={serverError}/>} />
+                <Route path="/" element={<Home persons={persons} loading={loading} serverError={serverError} />} />
                 <Route path="/register" element={<Register addPerson={addPerson} />} />
             </Routes>
         </BrowserRouter>

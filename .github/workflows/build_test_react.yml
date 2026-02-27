@@ -104,7 +104,7 @@ jobs:
           
           if [ "$LOCAL_VERSION" != "$NPM_VERSION" ]; then
             echo "New version detected. Building and Publishing..."
-            npm run build-npm-ci
+            npm run build-npm
             npm publish
           else
             echo "Version $LOCAL_VERSION already published. Skipping publish."

@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import fs from 'fs';
 
 console.log("🚀 Démarrage du build NPM...");
 
@@ -18,6 +19,9 @@ try {
     ].join(",");
 
     execSync(`npx babel src --out-dir lib --copy-files --no-copy-ignored --ignore "${ignorePatterns}"`, { stdio: 'inherit' });
+
+    console.log("📝 Création du package.json pour CommonJS...");
+    fs.writeFileSync('lib/package.json', JSON.stringify({ type: 'commonjs' }, null, 2));
 
     console.log("✨ Nettoyage final des résidus...");
     execSync('rimraf lib/App.css lib/index.css lib/pages lib/assets', { stdio: 'inherit' });

@@ -10,6 +10,7 @@ jest.config.js
 jsdoc.json
 eslint.config.js
 build-npm.js
+NPM_README.md
 
 # Git et GitHub
 .git/

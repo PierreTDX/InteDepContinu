@@ -1,1 +1,0 @@
-export { default as PersonForm } from './../app/src/components/PersonForm.jsx';

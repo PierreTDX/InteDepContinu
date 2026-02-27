@@ -90,7 +90,8 @@ jobs:
       - name: Install dependencies
         run: cd app && pnpm install --frozen-lockfile
 
-      - name: Check Version & Publish if New
+      - name: Check if version changed
+        id: check_version
         run: |
           cd app
           PACKAGE_NAME=$(node -p "require('./package.json').name")
@@ -103,14 +104,32 @@ jobs:
           echo "NPM version: $NPM_VERSION"
           
           if [ "$LOCAL_VERSION" != "$NPM_VERSION" ]; then
-            echo "New version detected. Building and Publishing..."
-            npm run build-npm
-            npm publish
+            echo "Version changed! Setting output to true."
+            # On crée une variable de sortie pour la prochaine étape
+            echo "should_publish=true" >> $GITHUB_OUTPUT
           else
-            echo "Version $LOCAL_VERSION already published. Skipping publish."
+            echo "Version $LOCAL_VERSION already published."
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+            # Astuce visuelle : on ajoute un résumé sur la page du run
+            echo "ℹ️ **NPM Publish Skipped:** Version $LOCAL_VERSION is already on the registry." >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Build and Publish to NPM
+        if: steps.check_version.outputs.should_publish == 'true'
+        run: |
+          cd app
+          echo "Building and Publishing version..."
+          npm run build-npm
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Publish Success Summary
+        if: steps.check_version.outputs.should_publish == 'true'
+        run: |
+          cd app
+          LOCAL_VERSION=$(node -p "require('./package.json').version")
+          echo "✅ **Successfully published version $LOCAL_VERSION to NPM!**" >> $GITHUB_STEP_SUMMARY
 
   deploy:
     needs: publish-npm

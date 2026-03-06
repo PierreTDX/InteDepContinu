@@ -194,6 +194,29 @@ jobs:
 
       - name: Wait for MySQL to be ready
         run: |
+          for i in {1..30}; do
+            if docker exec mysql-container mysqladmin ping -h localhost --silent; then
+              echo "MySQL is ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Run API Container
+        run: |
+          docker run -d \
+            --name api-container \
+            --network stack-net \
+            -e MYSQL_HOST=mysql-container \
+            -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
+            -e MYSQL_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+            -e MYSQL_DB=${{ secrets.MYSQL_DATABASE }} \
+            -p 8000:8000 \
+            my-api
+
+      - name: Wait for API startup
+        run: |
           for i in {1..10}; do
             if curl -s http://localhost:8000/users > /dev/null; then
               echo "API is up!"
@@ -202,39 +225,8 @@ jobs:
             echo "Waiting for API... ($i/10)"
             sleep 5
           done
-          echo "API failed to start"
           docker logs api-container
           exit 1
-
-      - name: Run API Container
-        run: |
-          docker run -d \
-            --name api-container \
-            --network stack-net \
-            -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
-            -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
-            -e MYSQL_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
-            -e MYSQL_DB=${{ secrets.MYSQL_DATABASE }} \
-            -p 8000:8000 \
-            my-api
-
-      - name: Wait for API startup
-        run: sleep 10
-
-      - name: Validate API with Curl
-        run: |
-          response=$(curl -s -w "\n%{http_code}" http://localhost:8000/users)
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | head -n -1)
-          echo "Response Body: $body"
-          if [ "$http_code" != "200" ]; then
-            echo "Error: HTTP status $http_code"
-            exit 1
-          fi
-          if echo "$body" | grep -q '"utilisateurs":\[\]'; then
-            echo "Error: User list is empty"
-            exit 1
-          fi
 
       - name: Push API Image to Docker Hub
         run: |

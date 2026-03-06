@@ -194,15 +194,17 @@ jobs:
 
       - name: Wait for MySQL to be ready
         run: |
-          echo "Waiting for MySQL..."
-          for i in $(seq 1 30); do
-            if docker exec mysql-container mysqladmin ping -h localhost --silent; then
-              echo "MySQL is ready!"
-              break
+          for i in {1..10}; do
+            if curl -s http://localhost:8000/users > /dev/null; then
+              echo "API is up!"
+              exit 0
             fi
-            echo "Attempt $i/30..."
-            sleep 3
+            echo "Waiting for API... ($i/10)"
+            sleep 5
           done
+          echo "API failed to start"
+          docker logs api-container
+          exit 1
 
       - name: Run API Container
         run: |

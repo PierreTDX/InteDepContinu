@@ -1,0 +1,40 @@
+services:
+  # Service Base de données MySQL
+  database:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mysql-container
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    networks:
+      - stack-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Service API Python
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: api-container
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      MYSQL_HOST: database
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - stack-net
+
+networks:
+  stack-net:
+    driver: bridge

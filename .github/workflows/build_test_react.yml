@@ -238,5 +238,8 @@ jobs:
 
       - name: Push API Image to Docker Hub
         run: |
+          docker tag my-api ${{ secrets.DOCKERHUB_USERNAME }}/python-api:${{ github.sha }}
           docker tag my-api ${{ secrets.DOCKERHUB_USERNAME }}/python-api:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/python-api:${{ github.sha }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/python-api:latest
+          # latest en plus pour que docker pull sans tag précis fonctionne toujours.

@@ -211,8 +211,8 @@ jobs:
             --network stack-net \
             -e MYSQL_HOST=mysql-container \
             -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
-            -e MYSQL_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
-            -e MYSQL_DB=${{ secrets.MYSQL_DATABASE }} \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+            -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
             -p 8000:8000 \
             my-api
 

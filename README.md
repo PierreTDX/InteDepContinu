@@ -20,6 +20,7 @@ Ce projet est un exemple d’application React configurée avec Vite, intégrant
 - Documentation technique (JSDoc) : https://pierretdx.github.io/InteDepContinu/docs/
 - Tableau de bord Codecov : https://app.codecov.io/gh/PierreTDX/InteDepContinu
 - Package NPM : https://www.npmjs.com/package/ptdx-ci-cd-ynov
+- DockerHub : https://hub.docker.com/r/pierretdx/python-api
 
 ## Prérequis
 

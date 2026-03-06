@@ -97,8 +97,22 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           LOCAL_VERSION=$(node -p "require('./package.json').version")
           
-          # Récupère la version distante (suppress error si package inexistant)
-          NPM_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "0.0.0")
+          # Récupère la version distante de manière robuste (Fail Fast)
+          set +e
+          NPM_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null)
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            ERROR_LOG=$(npm view "$PACKAGE_NAME" version 2>&1)
+            if echo "$ERROR_LOG" | grep -q "E404"; then
+              echo "Package not found (E404). Initializing to 0.0.0."
+              NPM_VERSION="0.0.0"
+            else
+              echo "::error::NPM Error: $ERROR_LOG"
+              exit 1
+            fi
+          fi
           
           echo "Local version: $LOCAL_VERSION"
           echo "NPM version: $NPM_VERSION"

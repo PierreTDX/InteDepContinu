@@ -194,13 +194,17 @@ jobs:
 
       - name: Wait for MySQL to be ready
         run: |
+          echo "Waiting for MySQL to start..."
           for i in {1..30}; do
-            if docker exec mysql-container mysqladmin ping -h localhost --silent; then
-              echo "MySQL is ready!"
+            if docker exec mysql-container mysqladmin ping -h localhost -u root -p${{ secrets.MYSQL_ROOT_PASSWORD }} --silent; then
+              echo "✅ MySQL is ready!"
               exit 0
             fi
-            sleep 2
+            echo "Still waiting for MySQL... ($i/30)"
+            sleep 3
           done
+          echo "❌ MySQL failed to start in time"
+          docker logs mysql-container
           exit 1
 
       - name: Run API Container
@@ -208,7 +212,7 @@ jobs:
           docker run -d \
             --name api-container \
             --network stack-net \
-            -e MYSQL_HOST=mysql-container \
+            -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
             -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
             -e MYSQL_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
             -e MYSQL_DB=${{ secrets.MYSQL_DATABASE }} \

@@ -236,12 +236,34 @@ jobs:
           docker logs api-container
           exit 1
 
-      - name: Push API Image to Docker Hub
+      - name: Check if API version changed
+        id: check_api_version
         run: |
           VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('./server/pyproject.toml', 'rb'))['project']['version'])")
-          echo "Publishing version: $VERSION"
+          echo "Local version: $VERSION"
+
+          # Vérifie si le tag existe déjà sur Docker Hub
+          set +e
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-api:$VERSION > /dev/null 2>&1
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "Version $VERSION already exists on Docker Hub, skipping push."
+            echo "should_push=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ **Docker Push Skipped:** Version $VERSION already on Docker Hub." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "New version $VERSION detected!"
+            echo "should_push=true" >> $GITHUB_OUTPUT
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Push API Image to Docker Hub
+        if: steps.check_api_version.outputs.should_push == 'true'
+        run: |
+          VERSION=${{ steps.check_api_version.outputs.version }}
           docker tag my-api ${{ secrets.DOCKERHUB_USERNAME }}/python-api:$VERSION
           docker tag my-api ${{ secrets.DOCKERHUB_USERNAME }}/python-api:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/python-api:$VERSION
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/python-api:latest
-          # latest en plus pour que docker pull sans tag précis fonctionne toujours.
+          echo "✅ **Successfully published python-api:$VERSION to Docker Hub!**" >> $GITHUB_STEP_SUMMARY

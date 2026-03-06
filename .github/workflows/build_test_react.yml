@@ -161,7 +161,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-build-test-deploy-api:
+  build-test-deploy-api:
     needs: build_test
     runs-on: ubuntu-latest
     steps:

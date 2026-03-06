@@ -209,7 +209,7 @@ jobs:
           docker run -d \
             --name api-container \
             --network stack-net \
-            -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+            -e MYSQL_HOST=mysql-container \
             -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
             -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
             -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \

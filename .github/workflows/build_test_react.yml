@@ -174,67 +174,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build MySQL Image
-        run: docker build -t my-mysql .
-
-      - name: Build Python API Image
-        run: docker build -t my-api ./server
-
-      - name: Create Network
-        run: docker network create stack-net
-
-      - name: Run MySQL Container
+      - name: Start services with Docker Compose
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
         run: |
-          docker run -d \
-            --name mysql-container \
-            --network stack-net \
-            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
-            -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
-            my-mysql
+          docker compose up -d --build --wait
 
-      - name: Wait for MySQL to be ready
+      - name: Verify Services and Test API
         run: |
-          echo "Waiting for MySQL..."
-          for i in {1..30}; do
-            if docker exec mysql-container mysql -u root -p${{ secrets.MYSQL_ROOT_PASSWORD }} -e "SELECT 1;" > /dev/null 2>&1; then
-              echo "✅ MySQL is ready!"
-              break
-            fi
-            echo "Still waiting... ($i/30)"
-            sleep 3
-          done
-
-      - name: Run API Container
-        run: |
-          docker run -d \
-            --name api-container \
-            --network stack-net \
-            -e MYSQL_HOST=mysql-container \
-            -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
-            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
-            -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
-            -p 8000:8000 \
-            my-api
-
-      - name: Wait for API startup
-        run: |
-          echo "Waiting for API..."
-          for i in {1..20}; do
-            STATUS=$(docker inspect --format='{{.State.Status}}' api-container)
-            if [ "$STATUS" = "exited" ]; then
-              echo "❌ API container crashed"
-              docker logs api-container
-              exit 1
-            fi
-            if curl -s http://localhost:8000/users > /dev/null; then
-              echo "✅ API is up!"
-              exit 0
-            fi
-            echo "Waiting... ($i/20)"
-            sleep 5
-          done
-          docker logs api-container
-          exit 1
+          echo "📋 Checking containers status..."
+          docker compose ps
+          
+          echo "🧪 Testing API endpoint..."
+          if curl -s -f http://localhost:8000/users > /dev/null; then
+            echo "✅ API /users is functional!"
+          else
+            echo "❌ API check failed"
+            docker compose logs api
+            exit 1
+          fi
 
       - name: Check if API version changed
         id: check_api_version

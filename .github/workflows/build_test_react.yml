@@ -1,6 +1,5 @@
 name: Build and Test React Application
 
-# pour éviter les builds multiples si tu pushes vite
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -9,105 +8,135 @@ on:
   push:
     branches: [main]
 
+# ─── Variables partagées ──────────────────────────────────────────────────────
+env:
+  NODE_VERSION: '24.x'
+  PNPM_VERSION: '10'
+  APP_DIR: app
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
+
+#   build_test — gate central de la CI
   build_test:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    strategy:
-      matrix:
-        node-version: [24.x]
+    outputs:
+      # Expose le node_modules artifact pour les jobs aval
+      node-modules-key: ${{ steps.cache-key.outputs.key }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # ── Setup ──────────────────────────────────────────────────────────────
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
-          cache-dependency-path: app/pnpm-lock.yaml
+          cache-dependency-path: ${{ env.APP_DIR }}/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: cd app && pnpm install --frozen-lockfile
+        run: cd ${{ env.APP_DIR }} && pnpm install --frozen-lockfile
 
-      - name: Install Cypress binary
-        run: cd app && pnpm exec cypress install
+      # ── Cache Cypress binary (évite le re-téléchargement à chaque run) ────
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('app/pnpm-lock.yaml') }}
+          restore-keys: cypress-${{ runner.os }}-
 
-      - name: Generate JSDoc
-        run: cd app && pnpm run doc
+      # ── Doc + Build en parallèle (gain ~20-40s) ───────────────────────────
+      - name: Generate JSDoc + Build React (parallel)
+        run: cd ${{ env.APP_DIR }} && pnpm exec concurrently --kill-others-on-fail "pnpm run doc" "pnpm run build"
 
-      - name: Build React App
-        run: cd app && pnpm run build
-
+      # ── Tests unitaires ───────────────────────────────────────────────────
       - name: Run Tests
-        run: cd app && pnpm test
+        run: cd ${{ env.APP_DIR }} && pnpm test
 
+      # ── Cypress e2e (le binaire vient du cache, pas besoin d'install) ──────
+      # Note: install: false + cache Cypress ci-dessus remplacent l'ancien
+      #       `pnpm exec cypress install` qui était redondant avec cette action
       - name: Run Cypress tests
         uses: cypress-io/github-action@v7
         with:
-          working-directory: app
+          working-directory: ${{ env.APP_DIR }}
           install: false
           start: pnpm dev
           wait-on: 'http://localhost:5173/InteDepContinu/'
 
-      - name: Upload coverage reports to Codecov
+      # ── Coverage — non bloquant (Codecov outage ne casse pas le deploy) ───
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
+        continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: app/coverage/lcov.info
-          fail_ci_if_error: 'true'
+          files: ${{ env.APP_DIR }}/coverage/lcov.info
 
+      # ── Partage node_modules avec les jobs aval (évite pnpm install ×2) ──
+      - name: Upload node_modules artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-modules
+          path: ${{ env.APP_DIR }}/node_modules
+          retention-days: 1
+
+      # ── GitHub Pages artifact ─────────────────────────────────────────────
       - name: Setup Pages
-        id: pages
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./app/dist
+          path: ./${{ env.APP_DIR }}/dist
 
+
+#   publish-npm — vérifie la version et publie si nécessaire
   publish-npm:
     needs: build_test
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '24.x'
-          registry-url: 'https://registry.npmjs.org'
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: ${{ env.PNPM_VERSION }}
 
-      - name: Install dependencies
-        run: cd app && pnpm install --frozen-lockfile
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+
+      # ── Réutilise node_modules depuis build_test (évite pnpm install) ─────
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules
+          path: ${{ env.APP_DIR }}/node_modules
 
       - name: Check if version changed
         id: check_version
         run: |
-          cd app
+          cd ${{ env.APP_DIR }}
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           LOCAL_VERSION=$(node -p "require('./package.json').version")
-          
-          # Récupère la version distante de manière robuste (Fail Fast)
+
           set +e
           NPM_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null)
           EXIT_CODE=$?
@@ -123,39 +152,34 @@ jobs:
               exit 1
             fi
           fi
-          
-          echo "Local version: $LOCAL_VERSION"
-          echo "NPM version: $NPM_VERSION"
-          
+
+          echo "Local version:  $LOCAL_VERSION"
+          echo "NPM version:    $NPM_VERSION"
+
           if [ "$LOCAL_VERSION" != "$NPM_VERSION" ]; then
-            echo "Version changed! Setting output to true."
-            # On crée une variable de sortie pour la prochaine étape
             echo "should_publish=true" >> $GITHUB_OUTPUT
           else
-            echo "Version $LOCAL_VERSION already published."
             echo "should_publish=false" >> $GITHUB_OUTPUT
-            # Astuce visuelle : on ajoute un résumé sur la page du run
             echo "ℹ️ **NPM Publish Skipped:** Version $LOCAL_VERSION is already on the registry." >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Build and Publish to NPM
         if: steps.check_version.outputs.should_publish == 'true'
         run: |
-          cd app
-          echo "Building and Publishing version..."
+          cd ${{ env.APP_DIR }}
           npm run build-npm
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
+
       - name: Publish Success Summary
         if: steps.check_version.outputs.should_publish == 'true'
         run: |
-          cd app
-          LOCAL_VERSION=$(node -p "require('./package.json').version")
-          echo "✅ Successfully published version $LOCAL_VERSION to NPM!"
+          LOCAL_VERSION=$(node -p "require('./${{ env.APP_DIR }}/package.json').version")
           echo "✅ **Successfully published version $LOCAL_VERSION to NPM!**" >> $GITHUB_STEP_SUMMARY
 
+
+#   deploy — déploie sur GitHub Pages
   deploy:
     needs: publish-npm
     if: always()
@@ -165,20 +189,26 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{steps.deployment.outputs.page_url}}
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Deploy to Github pages
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
+
+#   build-test-deploy-api — Docker build, test API, push Hub
   build-test-deploy-api:
     needs: build_test
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+
+      # ── Docker Buildx + cache layer (évite de rebuilder les layers inchangés)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -186,19 +216,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # ── Build avec cache GitHub Actions (type=gha) ────────────────────────
+      - name: Build API image with layer cache
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          push: false
+          load: true
+          tags: my-api:latest
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
       - name: Start services with Docker Compose
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
-        run: |
-          DOCKER_BUILDKIT=1 docker compose up -d --build --wait
+        run: docker compose up -d --wait
 
       - name: Verify Services and Test API
         run: |
           echo "📋 Checking containers status..."
           docker compose ps
-          
+
           echo "🧪 Testing API endpoint..."
           if curl -s -f http://localhost:8000/users > /dev/null; then
             echo "✅ API /users is functional!"
@@ -212,23 +252,20 @@ jobs:
         id: check_api_version
         run: |
           VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('./server/pyproject.toml', 'rb'))['project']['version'])")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Local version: $VERSION"
 
-          # Vérifie si le tag existe déjà sur Docker Hub
           set +e
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-api:$VERSION > /dev/null 2>&1
           EXIT_CODE=$?
           set -e
 
           if [ $EXIT_CODE -eq 0 ]; then
-            echo "Version $VERSION already exists on Docker Hub, skipping push."
             echo "should_push=false" >> $GITHUB_OUTPUT
             echo "ℹ️ **Docker Push Skipped:** Version $VERSION already on Docker Hub." >> $GITHUB_STEP_SUMMARY
           else
-            echo "New version $VERSION detected!"
             echo "should_push=true" >> $GITHUB_OUTPUT
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Push API Image to Docker Hub
         if: steps.check_api_version.outputs.should_push == 'true'

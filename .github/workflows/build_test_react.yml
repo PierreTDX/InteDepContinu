@@ -1,5 +1,10 @@
 name: Build and Test React Application
 
+# pour éviter les builds multiples si tu pushes vite
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
@@ -46,6 +51,7 @@ jobs:
         uses: cypress-io/github-action@v7
         with:
           working-directory: app
+          install: false
           start: pnpm dev
           wait-on: 'http://localhost:5173/InteDepContinu/'
 

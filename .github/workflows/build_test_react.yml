@@ -222,7 +222,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      # ── Docker Buildx + cache layer (évite de rebuilder les layers inchangés)
+      # ── Docker Buildx (requis pour le cache GHA) ──────────────────────────
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -232,7 +232,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # ── Build avec cache GitHub Actions (type=gha) ────────────────────────
+      # ── Cache images Docker Hub (mysql ~160MB, adminer) ───────────────────
+      # Sans ce cache, chaque run retélécharge ~200MB depuis Docker Hub.
+      # ScribeMD/docker-cache sauvegarde le daemon Docker entier dans le
+      # cache GHA — au prochain run, les images sont restaurées en ~3s.
+      - name: Cache Docker Hub images
+        uses: ScribeMD/docker-cache@0.5.0
+        with:
+          key: docker-${{ runner.os }}-${{ hashFiles('docker-compose.yml') }}
+
+      # ── Build image API avec cache GHA pour les layers ────────────────────
       - name: Build API image with layer cache
         uses: docker/build-push-action@v6
         with:

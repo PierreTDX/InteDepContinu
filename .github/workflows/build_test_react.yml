@@ -257,7 +257,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
-        run: docker compose up -d --wait
+        run: docker compose up -d --wait db api # on cible db + api, adminer et test_site ne sont pas nécessaires
 
       - name: Verify Services and Test API
         run: |

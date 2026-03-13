@@ -160,7 +160,7 @@ Un job spécifique `build-test-deploy-api` a été ajouté pour :
 Pour lancer la stack complète (Base de données + API) :
 
 ```bash
-docker compose up --build -d
+docker compose up -d
 ```
 
 Pour voir les logs :
@@ -231,7 +231,3 @@ select * from admin;
 exit
 ```
 
-
-
-
-docker compose up -d

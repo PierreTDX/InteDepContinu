@@ -1,29 +1,31 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10-slim
+# Etape 1 : Builder
+FROM python:3.10-slim AS builder
 
-# Prevent Python from writing pyc files and display logs immediately
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set the working directory
 WORKDIR /app
 
-# Create a non-root user for security
-RUN addgroup --system appgroup \
-    && adduser --system --ingroup appgroup appuser
+# Création d'un environnement virtuel pour isoler les dépendances
+RUN python -m venv /opt/venv
+# Activation de l'environnement virtuel pour les commandes suivantes
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Install dependencies in a cached layer
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Give ownership of the files to appuser
+# Etape 2 : Image finale
+FROM python:3.10-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /app
+RUN addgroup --system appgroup \
+    && adduser --system --ingroup appgroup appuser
+
+# Copie de l'environnement virtuel depuis l'étape builder
+COPY --from=builder --chown=appuser:appgroup /opt/venv /opt/venv
 COPY --chown=appuser:appgroup . .
 
-# Switch to the non-root user
 USER appuser
-
-# Document the port (published at runtime with -p)
 EXPOSE 8000
-
-# Start the API
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

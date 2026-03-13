@@ -230,3 +230,8 @@ select * from utilisateur;
 select * from admin;
 exit
 ```
+
+
+
+
+docker compose up -d

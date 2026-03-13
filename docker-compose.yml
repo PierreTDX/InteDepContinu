@@ -1,40 +1,52 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
 services:
-  # Service Base de données MySQL
-  database:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: mysql-container
+
+  db:
+    image: mysql:9.6
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
     ports:
       - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-    networks:
-      - stack-net
+    volumes:
+      - ./sqlfiles/:/docker-entrypoint-initdb.d/
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: mysql --user=root --password=$$MYSQL_ROOT_PASSWORD --execute "SHOW DATABASES;" || exit 1
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 5
+      start_period: 20s
 
-  # Service API Python
+  test_site:
+    image: nginx
+    depends_on:
+      db:
+        condition: service_healthy
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+
   api:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: api-container
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_USER    
+      - MYSQL_HOST=db      
     ports:
       - "8000:8000"
-    env_file: .env
-    environment:
-      MYSQL_HOST: database
     depends_on:
-      database:
+      db:
         condition: service_healthy
-    networks:
-      - stack-net
-
-networks:
-  stack-net:
-    driver: bridge

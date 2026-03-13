@@ -38,6 +38,9 @@ jobs:
       - name: Install dependencies
         run: cd app && pnpm install --frozen-lockfile
 
+      - name: Install Cypress binary
+        run: cd app && pnpm exec cypress install
+
       - name: Generate JSDoc
         run: cd app && pnpm run doc
 
@@ -189,7 +192,7 @@ jobs:
           MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
         run: |
-          docker compose up -d --build --wait
+          DOCKER_BUILDKIT=1 docker compose up -d --build --wait
 
       - name: Verify Services and Test API
         run: |

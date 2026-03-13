@@ -230,4 +230,3 @@ select * from utilisateur;
 select * from admin;
 exit
 ```
-

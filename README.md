@@ -1,5 +1,5 @@
 # Inte et dep continu  
-MAJ par Pierre TONDEUX le 27/02/2026
+MAJ par Pierre TONDEUX le 13/03/2026
 
 Ce projet est un exemple d’application React configurée avec Vite, intégrant :
 

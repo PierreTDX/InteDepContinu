@@ -17,6 +17,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -25,16 +30,8 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: app/pnpm-lock.yaml
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: Install dependencies
         run: cd app && pnpm install --frozen-lockfile
-
-      - name: Install Cypress binary
-        run: cd app && pnpm exec cypress install
 
       - name: Generate JSDoc
         run: cd app && pnpm run doc

@@ -17,7 +17,9 @@ env:
 
 jobs:
 
-#   build_test — gate central de la CI
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  build_test — gate central de la CI                                         ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
   build_test:
     runs-on: ubuntu-latest
     permissions:
@@ -55,9 +57,12 @@ jobs:
           key: cypress-${{ runner.os }}-${{ hashFiles('app/pnpm-lock.yaml') }}
           restore-keys: cypress-${{ runner.os }}-
 
-      # ── Doc + Build en parallèle (gain ~20-40s) ───────────────────────────
+      # ── Doc + Build en parallèle via bash natif (aucune dépendance) ─────────
       - name: Generate JSDoc + Build React (parallel)
-        run: cd ${{ env.APP_DIR }} && pnpm exec concurrently --kill-others-on-fail "pnpm run doc" "pnpm run build"
+        run: |
+          cd ${{ env.APP_DIR }}
+          pnpm run doc & pnpm run build &
+          wait
 
       # ── Tests unitaires ───────────────────────────────────────────────────
       - name: Run Tests
@@ -100,7 +105,9 @@ jobs:
           path: ./${{ env.APP_DIR }}/dist
 
 
-#   publish-npm — vérifie la version et publie si nécessaire
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  publish-npm — vérifie la version et publie si nécessaire                   ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
   publish-npm:
     needs: build_test
     runs-on: ubuntu-latest
@@ -179,7 +186,9 @@ jobs:
           echo "✅ **Successfully published version $LOCAL_VERSION to NPM!**" >> $GITHUB_STEP_SUMMARY
 
 
-#   deploy — déploie sur GitHub Pages
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  deploy — déploie sur GitHub Pages (flux actuel conservé)                   ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
   deploy:
     needs: publish-npm
     if: always()
@@ -197,7 +206,9 @@ jobs:
         uses: actions/deploy-pages@v4
 
 
-#   build-test-deploy-api — Docker build, test API, push Hub
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  build-test-deploy-api — Docker build, test API, push Hub                   ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
   build-test-deploy-api:
     needs: build_test
     runs-on: ubuntu-latest

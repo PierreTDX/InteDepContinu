@@ -52,7 +52,7 @@ jobs:
       # ── Cache Cypress binary (fallback install si cache absent) ──────────
       - name: Cache Cypress binary
         id: cypress-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ hashFiles('app/pnpm-lock.yaml') }}
@@ -94,7 +94,7 @@ jobs:
 
       # ── Partage node_modules avec les jobs aval (évite pnpm install ×2) ──
       - name: Upload node_modules artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: node-modules
           path: ${{ env.APP_DIR }}/node_modules
@@ -137,7 +137,7 @@ jobs:
 
       # ── Réutilise node_modules depuis build_test (évite pnpm install) ─────
       - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: node-modules
           path: ${{ env.APP_DIR }}/node_modules

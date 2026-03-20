@@ -5,7 +5,7 @@ console.log("🚀 Démarrage du build NPM...");
 
 try {
     console.log("🧹 Nettoyage du dossier lib...");
-    execSync('rimraf lib', { stdio: 'inherit' });
+    fs.rmSync('lib', { recursive: true, force: true });
 
     console.log("🔨 Compilation avec Babel...");
 
@@ -27,7 +27,9 @@ try {
     fs.copyFileSync('./NPM_README.md', './README.md');
 
     console.log("✨ Nettoyage final des résidus...");
-    execSync('rimraf lib/App.css lib/index.css lib/pages lib/assets', { stdio: 'inherit' });
+    ['lib/App.css', 'lib/index.css', 'lib/pages', 'lib/assets'].forEach(item => {
+        fs.rmSync(item, { recursive: true, force: true });
+    });
 
     console.log("✅ Build NPM terminé avec succès !");
 } catch (error) {

@@ -29,14 +29,14 @@ describe("Navigation and User Registration E2E Tests", () => {
 
     context("Nominal Scenario: Add a valid user", () => {
         it("should allow a user to register successfully", () => {
-            // GET /users → empty list
-            cy.intercept('GET', 'https://jsonplaceholder.typicode.com/users', {
+            // GET /users → empty list (supports both API and mock mode with wildcards)
+            cy.intercept('GET', '**/users', {
                 statusCode: 200,
                 body: []
             }).as('getUsers');
 
-            // POST /users → success
-            cy.intercept('POST', 'https://jsonplaceholder.typicode.com/users', {
+            // POST /users → success (supports both API and mock mode)
+            cy.intercept('POST', '**/users', {
                 statusCode: 201,
                 body: newUser
             }).as('createUser');
@@ -77,13 +77,13 @@ describe("Navigation and User Registration E2E Tests", () => {
     context("Error Scenario: Email already exists (400)", () => {
         it("should display EMAIL_ALREADY_EXISTS error", () => {
             // Existing user
-            cy.intercept('GET', 'https://jsonplaceholder.typicode.com/users', {
+            cy.intercept('GET', '**/users', {
                 statusCode: 200,
                 body: [apiUser]
             }).as('getUsers');
 
             // POST /users → 400 error
-            cy.intercept('POST', 'https://jsonplaceholder.typicode.com/users', {
+            cy.intercept('POST', '**/users', {
                 statusCode: 400,
                 body: { message: "EMAIL_ALREADY_EXISTS" }
             }).as('createUserFail');
@@ -119,13 +119,13 @@ describe("Navigation and User Registration E2E Tests", () => {
     context("Error Scenario: Server crash (500)", () => {
         it("should display alert and not crash app", () => {
             // GET /users → empty list
-            cy.intercept('GET', 'https://jsonplaceholder.typicode.com/users', {
+            cy.intercept('GET', '**/users', {
                 statusCode: 200,
                 body: []
             }).as('getUsers');
 
             // POST /users → server error 500
-            cy.intercept('POST', 'https://jsonplaceholder.typicode.com/users', {
+            cy.intercept('POST', '**/users', {
                 statusCode: 500
             }).as('createUserFail');
 
@@ -150,6 +150,50 @@ describe("Navigation and User Registration E2E Tests", () => {
             // Back home works
             cy.get('[data-cy=back-home]').click();
             cy.get('[data-cy=user-count]').should("contain", "0");
+        });
+    });
+
+    context("Scenario: Delete a user", () => {
+        it("should delete a user, display success toast and update the list", () => {
+            let currentUsers = [apiUser];
+
+            // Intercept GET to return dynamic user list
+            cy.intercept('GET', '**/users', (req) => {
+                req.reply({ statusCode: 200, body: currentUsers });
+            }).as('getUsers');
+
+            // Intercept DELETE
+            cy.intercept('DELETE', '**/users/*', (req) => {
+                currentUsers = []; // Clear the mock DB so the reload fetches an empty list
+                req.reply({ statusCode: 200, body: { message: "USER_DELETED" } });
+            }).as('deleteUser');
+
+            // Force visit to trigger the new intercepts reliably
+            cy.visit("/");
+            cy.wait('@getUsers');
+
+            cy.get('[data-cy=user-count]').should("contain", "1");
+
+            // Click delete button
+            cy.get('.delete-button').click();
+
+            // Modal should appear
+            cy.get('.modal-content').should('be.visible')
+                .and('contain.text', 'Confirmer la suppression');
+
+            // Confirm deletion
+            cy.get('.btn-confirm').click();
+            cy.wait('@deleteUser');
+
+            // Check toast
+            cy.contains("Utilisateur supprimé avec succès").should("be.visible");
+
+            // Wait for the app to reload (1.5s timeout in component)
+            cy.wait('@getUsers', { timeout: 4000 });
+
+            // Verify user count is updated
+            cy.get('[data-cy=user-count]').should("contain", "0");
+            cy.get('[data-cy=user-list]').should("not.exist");
         });
     });
 

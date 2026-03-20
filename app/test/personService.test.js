@@ -1,7 +1,10 @@
-import { fetchUsers, createUser } from '../src/domain/services/personService';
+import { fetchUsers, createUser, deleteUser } from '../src/domain/services/personService';
 import axios from 'axios';
 
 jest.mock('axios');
+
+// Force le mock de la méthode 'delete'
+axios.delete = jest.fn();
 
 describe('personService', () => {
 
@@ -111,6 +114,30 @@ describe('personService', () => {
         it('should throw SERVER_ERROR if server returns 400 (simulate backend email validation)', async () => {
             axios.post.mockRejectedValue({ response: { status: 400, data: { message: 'EMAIL_ALREADY_EXISTS' } } });
             await expect(createUser(person, [])).rejects.toThrow('EMAIL_ALREADY_EXISTS');
+        });
+    });
+
+    describe('deleteUser', () => {
+        it('should delete a user successfully', async () => {
+            axios.delete.mockResolvedValue({ data: { message: 'USER_DELETED' } });
+
+            await expect(deleteUser(1)).resolves.toBeUndefined();
+            expect(axios.delete).toHaveBeenCalledWith(expect.stringContaining('/users/1'));
+        });
+
+        it('should throw SERVER_ERROR on network failure', async () => {
+            axios.delete.mockRejectedValue(new Error('Network Error'));
+            await expect(deleteUser(1)).rejects.toThrow('SERVER_ERROR');
+        });
+
+        it('should throw SERVER_ERROR if server returns 500', async () => {
+            axios.delete.mockRejectedValue({ response: { status: 500 } });
+            await expect(deleteUser(1)).rejects.toThrow('SERVER_ERROR');
+        });
+
+        it('should throw SERVER_ERROR if server returns 404 (user not found)', async () => {
+            axios.delete.mockRejectedValue({ response: { status: 404, data: { message: 'USER_NOT_FOUND' } } });
+            await expect(deleteUser(1)).rejects.toThrow('SERVER_ERROR');
         });
     });
 

@@ -9,19 +9,19 @@ describe("Navigation and User Registration E2E Tests", () => {
         city: "Montluçon"
     };
 
-    const apiUser = {
-        id: 11,
-        name: "Théo Lafond",
-        username: "TheoL",
-        email: "theo@example.com",
-        birthDate: "2001-09-02",
-        address: {
-            street: "1 Rue de Test",
-            suite: "Apt 101",
-            city: "Montluçon",
-            zipcode: "03100"
-        }
-    };
+    // const apiUser = {
+    //     id: 11,
+    //     name: "Théo Lafond",
+    //     username: "TheoL",
+    //     email: "theo@example.com",
+    //     birthDate: "2001-09-02",
+    //     address: {
+    //         street: "1 Rue de Test",
+    //         suite: "Apt 101",
+    //         city: "Montluçon",
+    //         zipcode: "03100"
+    //     }
+    // };
 
     beforeEach(() => {
         cy.visit("/");

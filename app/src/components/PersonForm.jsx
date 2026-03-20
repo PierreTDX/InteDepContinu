@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { validatePerson, validateAge, validateZipCode, validateCity, validateName, validateEmail } from '../domain/validator'
-import {errorMessages, getErrorMessage} from '../utils/errorMessages'
+import { errorMessages, getErrorMessage } from '../utils/errorMessages'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import './PersonForm.css'
@@ -19,7 +19,7 @@ import './PersonForm.css'
  *
  * @returns {JSX.Element} The rendered registration form
  */
-export default function PersonForm({addPerson}) {
+export default function PersonForm({ addPerson }) {
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
@@ -132,92 +132,93 @@ export default function PersonForm({addPerson}) {
         !form.firstName || !form.lastName || !form.email || !form.birthDate || !form.zip || !form.city || Object.values(errors).some(Boolean)
 
     return (
-        <div className="card">
-            <h2>Formulaire d'inscription</h2>
-            <form onSubmit={handleSubmit} className="person-form">
-                <div className="form-group">
-                    <input
-                        data-cy="firstName"
-                        name="firstName"
-                        aria-label="firstName"
-                        placeholder="Prénom"
-                        value={form.firstName}
-                        onChange={handleChange}
-                        onBlur={(e) => validateField('firstName', e.target.value)}
-                    />
-                    {errors.firstName && <span className="error">{getErrorMessage(errors.firstName)}</span>}
-                </div>
+        <div className="person-form-container">
+            <div className="card">
+                <h2>Formulaire d'inscription</h2>
+                <form onSubmit={handleSubmit} className="person-form">
+                    <div className="form-group">
+                        <input
+                            data-cy="firstName"
+                            name="firstName"
+                            aria-label="firstName"
+                            placeholder="Prénom"
+                            value={form.firstName}
+                            onChange={handleChange}
+                            onBlur={(e) => validateField('firstName', e.target.value)}
+                        />
+                        {errors.firstName && <span className="error">{getErrorMessage(errors.firstName)}</span>}
+                    </div>
 
-                <div className="form-group">
-                    <input
-                        data-cy="lastName"
-                        name="lastName"
-                        aria-label="lastName"
-                        placeholder="Nom"
-                        value={form.lastName}
-                        onChange={handleChange}
-                        onBlur={(e) => validateField('lastName', e.target.value)}
-                    />
-                    {errors.lastName && <span className="error">{getErrorMessage(errors.lastName)}</span>}
-                </div>
+                    <div className="form-group">
+                        <input
+                            data-cy="lastName"
+                            name="lastName"
+                            aria-label="lastName"
+                            placeholder="Nom"
+                            value={form.lastName}
+                            onChange={handleChange}
+                            onBlur={(e) => validateField('lastName', e.target.value)}
+                        />
+                        {errors.lastName && <span className="error">{getErrorMessage(errors.lastName)}</span>}
+                    </div>
 
-                <div className="form-group">
-                    <input
-                        data-cy="birthDate"
-                        type="date"
-                        name="birthDate"
-                        data-testid="birthDate"
-                        value={form.birthDate}
-                        onChange={handleChange}
-                        onBlur={(e) => validateField('birthDate', e.target.value)}
-                    />
-                    {errors.birthDate && <span className="error">{getErrorMessage(errors.birthDate)}</span>}
-                </div>
+                    <div className="form-group">
+                        <input
+                            data-cy="birthDate"
+                            type="date"
+                            name="birthDate"
+                            data-testid="birthDate"
+                            value={form.birthDate}
+                            onChange={handleChange}
+                            onBlur={(e) => validateField('birthDate', e.target.value)}
+                        />
+                        {errors.birthDate && <span className="error">{getErrorMessage(errors.birthDate)}</span>}
+                    </div>
 
-                <div className="form-group">
-                    <input
-                        data-cy="zip"
-                        name="zip"
-                        aria-label="zip"
-                        placeholder="Code Postal"
-                        value={form.zip}
-                        onChange={handleChange}
-                        onBlur={(e) => validateField('zip', e.target.value)}
-                    />
-                    {errors.zip && <span className="error">{getErrorMessage(errors.zip)}</span>}
-                </div>
+                    <div className="form-group">
+                        <input
+                            data-cy="zip"
+                            name="zip"
+                            aria-label="zip"
+                            placeholder="Code Postal"
+                            value={form.zip}
+                            onChange={handleChange}
+                            onBlur={(e) => validateField('zip', e.target.value)}
+                        />
+                        {errors.zip && <span className="error">{getErrorMessage(errors.zip)}</span>}
+                    </div>
 
-                <div className="form-group">
-                    <input
-                        data-cy="city"
-                        name="city"
-                        aria-label="city"
-                        placeholder="Ville"
-                        value={form.city}
-                        onChange={handleChange}
-                        onBlur={(e) => validateField('city', e.target.value)}
-                    />
-                    {errors.city && <span className="error">{getErrorMessage(errors.city)}</span>}
-                </div>
+                    <div className="form-group">
+                        <input
+                            data-cy="city"
+                            name="city"
+                            aria-label="city"
+                            placeholder="Ville"
+                            value={form.city}
+                            onChange={handleChange}
+                            onBlur={(e) => validateField('city', e.target.value)}
+                        />
+                        {errors.city && <span className="error">{getErrorMessage(errors.city)}</span>}
+                    </div>
 
-                <div className="form-group">
-                    <input
-                        data-cy="email"
-                        name="email"
-                        aria-label="email"
-                        placeholder="Email"
-                        value={form.email}
-                        onChange={handleChange}
-                        onBlur={(e) => validateField('email', e.target.value)}
-                    />
-                    {errors.email && <span className="error">{getErrorMessage(errors.email)}</span>}
-                </div>
+                    <div className="form-group">
+                        <input
+                            data-cy="email"
+                            name="email"
+                            aria-label="email"
+                            placeholder="Email"
+                            value={form.email}
+                            onChange={handleChange}
+                            onBlur={(e) => validateField('email', e.target.value)}
+                        />
+                        {errors.email && <span className="error">{getErrorMessage(errors.email)}</span>}
+                    </div>
 
-                <button data-cy="submit" type="submit" disabled={isDisabled}>
-                    Soumettre
-                </button>
-            </form>
-
+                    <button data-cy="submit" type="submit" disabled={isDisabled}>
+                        Soumettre
+                    </button>
+                </form>
+            </div>
             <ToastContainer
                 position="top-right"
                 autoClose={3000}
@@ -229,6 +230,5 @@ export default function PersonForm({addPerson}) {
                 draggable
                 pauseOnHover
             />
-        </div>
-    )
+        </div>)
 }

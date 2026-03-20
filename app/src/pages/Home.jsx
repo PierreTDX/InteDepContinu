@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
-import {toast, ToastContainer} from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import ConfirmModal from '../components/ConfirmModal';
+import { deleteUser } from '../domain/services/personService';
+import { getErrorMessage } from '../utils/errorMessages';
 
 /**
  * Home Component
@@ -13,11 +16,14 @@ import {toast, ToastContainer} from "react-toastify";
  *
  * @param {Object} props
  * @param {Array<Object>} props.persons - Array of person objects to display
+ * @param {function(string|number): void} [props.onUserDeleted] - Callback when a user is deleted
  *
  * @returns {JSX.Element}
  */
-export default function Home({persons, loading, serverError }) {
+export default function Home({ persons, loading, serverError, onUserDeleted }) {
     const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [personToDelete, setPersonToDelete] = useState(null);
 
     /**
      * Navigate to the registration form.
@@ -27,6 +33,29 @@ export default function Home({persons, loading, serverError }) {
      */
     const handleGoToForm = () => {
         navigate('/register');
+    };
+
+    const handleDeleteClick = (person) => {
+        setPersonToDelete(person);
+        setIsModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!personToDelete) return;
+        try {
+            await deleteUser(personToDelete.id);
+            toast.success(getErrorMessage("USER_DELETED"));
+            if (onUserDeleted) {
+                onUserDeleted(personToDelete.id);
+            } else {
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        } catch (error) {
+            toast.error(getErrorMessage("SERVER_ERROR"));
+        } finally {
+            setIsModalOpen(false);
+            setPersonToDelete(null);
+        }
     };
 
     if (serverError) {
@@ -48,7 +77,7 @@ export default function Home({persons, loading, serverError }) {
                     <h1>Bienvenue</h1>
                     <p>Chargement des utilisateurs...</p>
                 </div>
-                <ToastContainer position="top-right"/>
+                <ToastContainer position="top-right" />
             </div>
         );
     }
@@ -70,7 +99,14 @@ export default function Home({persons, loading, serverError }) {
                         <ul data-cy="user-list" className="user-list">
                             {persons.map((person, index) => (
                                 <li key={index}>
-                                    {person.firstName} {person.lastName} ({person.email})
+                                    <span>{person.firstName} {person.lastName} ({person.email})</span>
+                                    <button
+                                        onClick={() => handleDeleteClick(person)}
+                                        className="delete-button"
+                                        title="Supprimer"
+                                    >
+                                        ❌
+                                    </button>
                                 </li>
                             ))}
                         </ul>
@@ -79,7 +115,16 @@ export default function Home({persons, loading, serverError }) {
                     )}
                 </div>
             </div>
-            <ToastContainer position="top-right"/>
+            <ToastContainer position="top-right" />
+            <ConfirmModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Confirmer la suppression"
+            >
+                <p>Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{personToDelete?.firstName} {personToDelete?.lastName}</strong> ?</p>
+                <p>Cette action est irréversible.</p>
+            </ConfirmModal>
         </div>
     );
 }

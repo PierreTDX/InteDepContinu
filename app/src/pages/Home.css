@@ -35,7 +35,6 @@
     border-radius: 0.5rem;
     cursor: pointer;
     font-weight: bold;
-    margin-bottom: 1.5rem;
     transition: background-color 0.2s;
 }
 
@@ -48,10 +47,25 @@
     padding: 0;
     max-height: 150px;
     overflow-y: auto;
+    text-align: left;
 }
 
 .user-list li {
     padding: 0.3rem 0;
     border-bottom: 1px solid #eee;
     font-size: 0.95rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card .delete-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: red;
+}
+
+.card .delete-button:hover {
+    background-color: #ffe6e6;
 }

@@ -80,3 +80,17 @@ async def create_user(user: UserCreate):
         conn.rollback()
         print(f"Erreur lors de la création de l'utilisateur : {e}")
         return JSONResponse(status_code=500, content={"message": "SERVER_ERROR"})
+
+@app.delete("/users/{user_id}")
+async def delete_user(user_id: int):
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM utilisateur WHERE id = %s", (user_id,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return JSONResponse(status_code=404, content={"message": "USER_NOT_FOUND"})
+        return {"message": "USER_DELETED"}
+    except Exception as e:
+        conn.rollback()
+        print(f"Erreur lors de la suppression de l'utilisateur : {e}")
+        return JSONResponse(status_code=500, content={"message": "SERVER_ERROR"})

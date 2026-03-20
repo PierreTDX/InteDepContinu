@@ -4,10 +4,10 @@ import axios from "axios";
  * Base API URL. 
  * Set VITE_USE_MOCK_API=true in your .env file or docker-compose to use JSONPlaceholder.
  */
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true';
+const USE_MOCK = process.env.VITE_USE_MOCK_API === 'true';
 const API_BASE = USE_MOCK
     ? "https://jsonplaceholder.typicode.com"
-    : (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000");
+    : (process.env.VITE_API_BASE_URL || "http://127.0.0.1:8000");
 
 /**
  * Fetch all users from the API.
@@ -25,6 +25,7 @@ export async function fetchUsers() {
         const usersList = Array.isArray(response.data) ? response.data : (response.data.utilisateurs || []);
 
         return usersList.map(u => ({
+            id: u.id,
             firstName: u.firstName || (u.name ? u.name.split(' ')[0] : '') || '',
             lastName: u.lastName || (u.name ? u.name.split(' ')[1] : '') || '',
             email: u.email,
@@ -34,6 +35,23 @@ export async function fetchUsers() {
         }));
     } catch (error) {
         console.error("Erreur dans fetchUsers :", error);
+        throw new Error("SERVER_ERROR");
+    }
+}
+
+/**
+ * Delete a user via API.
+ *
+ * @async
+ * @function deleteUser
+ * @param {number|string} userId - ID of the user to delete
+ * @returns {Promise<void>}
+ */
+export async function deleteUser(userId) {
+    try {
+        await axios.delete(`${API_BASE}/users/${userId}`);
+    } catch (error) {
+        console.error("Erreur dans deleteUser :", error);
         throw new Error("SERVER_ERROR");
     }
 }

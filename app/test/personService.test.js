@@ -23,6 +23,32 @@ describe('personService', () => {
             });
         });
 
+        it('should return a list of users from Python API format', async () => {
+            const mockData = {
+                utilisateurs: [
+                    { firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', birthDate: '1990-01-01', zip: '69000', city: 'Lyon' }
+                ]
+            };
+            axios.get.mockResolvedValue({ data: mockData });
+
+            const users = await fetchUsers();
+            expect(users).toHaveLength(1);
+            expect(users[0]).toMatchObject({
+                firstName: 'Jane',
+                lastName: 'Doe',
+                email: 'jane@example.com',
+                birthDate: '1990-01-01',
+                zip: '69000',
+                city: 'Lyon'
+            });
+        });
+
+        it('should return empty array if data structure is unrecognized', async () => {
+            axios.get.mockResolvedValue({ data: { unexpected_field: [] } });
+            const users = await fetchUsers();
+            expect(users).toEqual([]);
+        });
+
         it('should handle empty name or single word name', async () => {
             const mockData = [
                 { name: '', email: 'empty@example.com', address: {} },
@@ -89,4 +115,3 @@ describe('personService', () => {
     });
 
 });
-

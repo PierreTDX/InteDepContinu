@@ -18,7 +18,7 @@ try {
         "**/index.css"
     ].join(",");
 
-    execSync(`npx @babel/cli src --out-dir lib --copy-files --no-copy-ignored --ignore "${ignorePatterns}"`, { stdio: 'inherit' });
+    execSync(`npx babel src --out-dir lib --copy-files --no-copy-ignored --ignore "${ignorePatterns}"`, { stdio: 'inherit' });
 
     console.log("📝 Création du package.json pour CommonJS...");
     fs.writeFileSync('lib/package.json', JSON.stringify({ type: 'commonjs' }, null, 2));

@@ -92,14 +92,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ env.APP_DIR }}/coverage/lcov.info
 
-      # ── Partage node_modules avec les jobs aval (évite pnpm install ×2) ──
-      - name: Upload node_modules artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: node-modules
-          path: ${{ env.APP_DIR }}/node_modules
-          retention-days: 1
-
       # ── GitHub Pages artifact ─────────────────────────────────────────────
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -134,13 +126,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: 'https://registry.npmjs.org'
+          cache: 'pnpm'
+          cache-dependency-path: ${{ env.APP_DIR }}/pnpm-lock.yaml
 
-      # ── Réutilise node_modules depuis build_test (évite pnpm install) ─────
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: node-modules
-          path: ${{ env.APP_DIR }}/node_modules
+      - name: Install dependencies
+        run: cd ${{ env.APP_DIR }} && pnpm install --frozen-lockfile
 
       - name: Check if version changed
         id: check_version

@@ -1,10 +1,13 @@
 import axios from "axios";
 
 /**
- * Base API URL for JSONPlaceholder.
- * Note: JSONPlaceholder does not persist POST requests.
+ * Base API URL. 
+ * Set VITE_USE_MOCK_API=true in your .env file or docker-compose to use JSONPlaceholder.
  */
-const API_BASE = "https://jsonplaceholder.typicode.com";
+const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true';
+const API_BASE = USE_MOCK
+    ? "https://jsonplaceholder.typicode.com"
+    : (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000");
 
 /**
  * Fetch all users from the API.
@@ -17,15 +20,20 @@ const API_BASE = "https://jsonplaceholder.typicode.com";
 export async function fetchUsers() {
     try {
         const response = await axios.get(`${API_BASE}/users`);
-        return response.data.map(u => ({
-            firstName: u.name.split(' ')[0] || '',
-            lastName: u.name.split(' ')[1] || '',
+
+        // Détermine si on reçoit un tableau direct (JSONPlaceholder) ou un objet avec 'utilisateurs' (DB Python)
+        const usersList = Array.isArray(response.data) ? response.data : (response.data.utilisateurs || []);
+
+        return usersList.map(u => ({
+            firstName: u.firstName || (u.name ? u.name.split(' ')[0] : '') || '',
+            lastName: u.lastName || (u.name ? u.name.split(' ')[1] : '') || '',
             email: u.email,
-            birthDate: '',
-            zip: u.address?.zipcode || '',
-            city: u.address?.city || ''
+            birthDate: u.birthDate || '',
+            zip: u.zip || u.address?.zipcode || '',
+            city: u.city || u.address?.city || ''
         }));
     } catch (error) {
+        console.error("Erreur dans fetchUsers :", error);
         throw new Error("SERVER_ERROR");
     }
 }
@@ -60,6 +68,7 @@ export async function createUser(person, existingEmails = []) {
             throw new Error("SERVER_ERROR");
         }
 
+        console.error("Erreur dans createUser :", error);
         throw new Error("SERVER_ERROR");
     }
 }

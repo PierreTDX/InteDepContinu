@@ -56,3 +56,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  react:
+    image: react
+    build: ./app
+    ports:
+    - 5173:5173
+    environment:
+    - VITE_API_BASE_URL=http://127.0.0.1:8000
+    volumes:
+    - ./app:/app
+    - /app/node_modules
+    depends_on:
+    - api
+    command: npm run dev -- --host

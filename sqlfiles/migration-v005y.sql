@@ -1,4 +1,4 @@
 USE ynov_ci;
 
 INSERT INTO utilisateur (firstName, lastName, email)
-VALUES ("fenoll", "loise", "loise.fenoll@ynov.com");
+VALUES ("Eloan", "TG", "eloan.tg@ynov.com");

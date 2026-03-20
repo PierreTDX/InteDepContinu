@@ -10,13 +10,16 @@ import { getErrorMessage } from '../utils/errorMessages';
  * Home Component
  *
  * Displays the list of registered persons and a button to navigate to the registration form.
+ * Includes a modal to confirm user deletion and handles the deletion process.
  *
  * @module Home
  * @component
  *
- * @param {Object} props
- * @param {Array<Object>} props.persons - Array of person objects to display
- * @param {function(string|number): void} [props.onUserDeleted] - Callback when a user is deleted
+ * @param {Object} props - The component props.
+ * @param {Array<Object>} props.persons - Array of person objects to display.
+ * @param {boolean} [props.loading] - Indicates if the user list is currently loading.
+ * @param {string|null} [props.serverError] - Error message to display if fetching users failed.
+ * @param {function((string|number)): void} [props.onUserDeleted] - Callback when a user is deleted.
  *
  * @returns {JSX.Element}
  */
@@ -35,11 +38,29 @@ export default function Home({ persons, loading, serverError, onUserDeleted }) {
         navigate('/register');
     };
 
+    /**
+     * Handles the click event on the delete button for a specific user.
+     * Opens the confirmation modal and sets the selected person for deletion.
+     * 
+     * @function handleDeleteClick
+     * @private
+     * @param {Object} person - The person object to be deleted.
+     */
     const handleDeleteClick = (person) => {
         setPersonToDelete(person);
         setIsModalOpen(true);
     };
 
+    /**
+     * Handles the confirmation of user deletion from the modal.
+     * Calls the API to delete the user, displays a toast notification, 
+     * and triggers the parent callback or reloads the page.
+     * 
+     * @async
+     * @function handleConfirmDelete
+     * @private
+     * @returns {Promise<void>}
+     */
     const handleConfirmDelete = async () => {
         if (!personToDelete) return;
         try {

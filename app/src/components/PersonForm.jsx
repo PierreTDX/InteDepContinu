@@ -14,8 +14,8 @@ import './PersonForm.css'
  * @module PersonForm
  * @component
  *
- * @param {Object} props
- * @param {function(Object): void} props.addPerson - Callback function to add a person object to parent state or storage
+ * @param {Object} props - The component props.
+ * @param {function(Object): Promise<void>} props.addPerson - Async callback function to add a person object to parent state or storage.
  *
  * @returns {JSX.Element} The rendered registration form
  */
@@ -32,12 +32,13 @@ export default function PersonForm({ addPerson }) {
     const [errors, setErrors] = useState({})
 
     /**
-     * Validate a single form field and update the error state.
+     * Validates a single form field and updates the component's error state.
+     *
      * @module PersonForm
      * @function validateField
      * @private
-     * @param {string} name - Field name
-     * @param {string} value - Field value
+     * @param {string} name - The name of the field to validate.
+     * @param {string} value - The current value of the field.
      */
     const validateField = (name, value) => {
         if (!value) {
@@ -73,11 +74,13 @@ export default function PersonForm({ addPerson }) {
     }
 
     /**
-     * Handle form field changes.
+     * Handles changes in form input fields.
+     * Updates the form state and triggers validation for the changed field.
+     *
      * @module PersonForm
      * @function handleChange
      * @private
-     * @param {Event} e - Input change event
+     * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
      */
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -86,11 +89,15 @@ export default function PersonForm({ addPerson }) {
     }
 
     /**
-     * Handle form submission.
+     * Handles the form submission.
+     * Validates the entire person object, calls the addPerson API, 
+     * and displays a success or error toast based on the result.
+     *
+     * @async
      * @module PersonForm
      * @function handleSubmit
      * @private
-     * @param {Event} e - Submit event
+     * @param {React.FormEvent<HTMLFormElement>} e - The form submission event.
      */
     const handleSubmit = async (e) => {
         e.preventDefault()

@@ -8,6 +8,52 @@ axios.delete = jest.fn();
 
 describe('personService', () => {
 
+    describe('API Configuration', () => {
+        const originalEnv = process.env;
+
+        afterEach(() => {
+            process.env = { ...originalEnv };
+        });
+
+        it('should use JSONPlaceholder when VITE_USE_MOCK_API is true', async () => {
+            process.env.VITE_USE_MOCK_API = 'true';
+
+            axios.get.mockResolvedValue({ data: [] });
+
+            await fetchUsers();
+
+            expect(axios.get).toHaveBeenCalledWith(
+                'https://jsonplaceholder.typicode.com/users'
+            );
+        });
+
+        it('should use custom VITE_API_BASE_URL when provided', async () => {
+            process.env.VITE_USE_MOCK_API = 'false';
+            process.env.VITE_API_BASE_URL = 'http://custom-api:8080';
+
+            axios.get.mockResolvedValue({ data: [] });
+
+            await fetchUsers();
+
+            expect(axios.get).toHaveBeenCalledWith(
+                'http://custom-api:8080/users'
+            );
+        });
+
+        it('should use fallback URL when no environment variables are set', async () => {
+            delete process.env.VITE_USE_MOCK_API;
+            delete process.env.VITE_API_BASE_URL;
+
+            axios.get.mockResolvedValue({ data: [] });
+
+            await fetchUsers();
+
+            expect(axios.get).toHaveBeenCalledWith(
+                'http://127.0.0.1:8000/users'
+            );
+        });
+    });
+
     describe('fetchUsers', () => {
         it('should return a list of users on success', async () => {
             const mockData = [

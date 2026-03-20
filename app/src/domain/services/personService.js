@@ -1,25 +1,32 @@
 import axios from "axios";
 
 /**
- * Base API URL. 
- * Set VITE_USE_MOCK_API=true in your .env file or docker-compose to use JSONPlaceholder.
+ * Determines the base API URL depending on environment variables.
+ * If `VITE_USE_MOCK_API` is set to 'true', it returns the JSONPlaceholder URL.
+ * Otherwise, it uses `VITE_API_BASE_URL` or defaults to 'http://127.0.0.1:8000'.
+ *
+ * @function getApiBase
+ * @returns {string} The base URL for API requests.
  */
-const USE_MOCK = process.env.VITE_USE_MOCK_API === 'true';
-const API_BASE = USE_MOCK
-    ? "https://jsonplaceholder.typicode.com"
-    : (process.env.VITE_API_BASE_URL || "http://127.0.0.1:8000");
+function getApiBase() {
+    return process.env.VITE_USE_MOCK_API === 'true'
+        ? "https://jsonplaceholder.typicode.com"
+        : (process.env.VITE_API_BASE_URL || "http://127.0.0.1:8000");
+}
 
 /**
- * Fetch all users from the API.
+ * Fetches all users from the API.
+ * Adapts the response format whether it comes from the mock API (JSONPlaceholder)
+ * or the custom Python backend database.
  *
  * @async
  * @function fetchUsers
- * @returns {Promise<Array>} List of users
- * @throws {Error} Throws "SERVER_ERROR" if request fails
+ * @returns {Promise<Array<{id: number, firstName: string, lastName: string, email: string, birthDate: string, zip: string, city: string}>>} List of mapped users.
+ * @throws {Error} Throws "SERVER_ERROR" if the network request fails or server crashes.
  */
 export async function fetchUsers() {
     try {
-        const response = await axios.get(`${API_BASE}/users`);
+        const response = await axios.get(`${getApiBase()}/users`);
 
         // Détermine si on reçoit un tableau direct (JSONPlaceholder) ou un objet avec 'utilisateurs' (DB Python)
         const usersList = Array.isArray(response.data) ? response.data : (response.data.utilisateurs || []);
@@ -40,16 +47,17 @@ export async function fetchUsers() {
 }
 
 /**
- * Delete a user via API.
+ * Deletes a specific user via the API using their ID.
  *
  * @async
  * @function deleteUser
- * @param {number|string} userId - ID of the user to delete
- * @returns {Promise<void>}
+ * @param {number|string} userId - The unique identifier of the user to delete.
+ * @returns {Promise<void>} Resolves when the user is successfully deleted.
+ * @throws {Error} Throws "SERVER_ERROR" if the deletion fails (e.g., network error, 404, or 500).
  */
 export async function deleteUser(userId) {
     try {
-        await axios.delete(`${API_BASE}/users/${userId}`);
+        await axios.delete(`${getApiBase()}/users/${userId}`);
     } catch (error) {
         console.error("Erreur dans deleteUser :", error);
         throw new Error("SERVER_ERROR");
@@ -57,15 +65,22 @@ export async function deleteUser(userId) {
 }
 
 /**
- * Create a new user via API.
- * Performs local email uniqueness check to simulate business validation.
+ * Creates a new user via the API.
+ * Performs a local email uniqueness check before sending the request, 
+ * and correctly interprets backend 400 status codes for duplicate emails.
  *
  * @async
  * @function createUser
- * @param {Object} person - User object to create
- * @param {Array<string>} existingEmails - List of already registered emails
- * @returns {Promise<Object>} Created user
- * @throws {Error} Throws "EMAIL_ALREADY_EXISTS" or "SERVER_ERROR"
+ * @param {Object} person - The user object to create.
+ * @param {string} person.firstName - The user's first name.
+ * @param {string} person.lastName - The user's last name.
+ * @param {string} person.email - The user's email address.
+ * @param {string} [person.birthDate] - The user's birth date.
+ * @param {string} [person.zip] - The user's zip code.
+ * @param {string} [person.city] - The user's city.
+ * @param {Array<string>} [existingEmails=[]] - List of currently registered emails to validate against locally.
+ * @returns {Promise<Object>} The created user object returned by the API.
+ * @throws {Error} Throws "EMAIL_ALREADY_EXISTS" if the email is taken, or "SERVER_ERROR" for other failures.
  */
 export async function createUser(person, existingEmails = []) {
     if (existingEmails.includes(person.email.toLowerCase())) {
@@ -73,7 +88,7 @@ export async function createUser(person, existingEmails = []) {
     }
 
     try {
-        const response = await axios.post(`${API_BASE}/users`, person);
+        const response = await axios.post(`${getApiBase()}/users`, person);
         return response.data;
     } catch (error) {
         const status = error.response?.status;

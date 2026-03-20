@@ -291,3 +291,12 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/python-api:$VERSION
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/python-api:latest
           echo "✅ **Successfully published python-api:$VERSION to Docker Hub!**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Update Docker Hub Description
+        if: steps.check_api_version.outputs.should_push == 'true'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/python-api
+          readme-filepath: ./server/API_README.md

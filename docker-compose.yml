@@ -70,5 +70,6 @@ services:
     - ./app:/app
     - /app/node_modules
     depends_on:
-    - api
+      api:
+        condition: service_healthy
     command: npm run dev -- --host

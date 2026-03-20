@@ -73,6 +73,13 @@ jobs:
       - name: Run Tests
         run: cd ${{ env.APP_DIR }} && pnpm test
 
+      - name: Start Full Infrastructure for E2E
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+        run: docker compose up -d --wait db api react
+
       # ── Cypress e2e (le binaire vient du cache, pas besoin d'install) ──────
       # Note: install: false + cache Cypress ci-dessus remplacent l'ancien
       #       `pnpm exec cypress install` qui était redondant avec cette action
@@ -81,7 +88,6 @@ jobs:
         with:
           working-directory: ${{ env.APP_DIR }}
           install: false
-          start: pnpm dev
           wait-on: 'http://localhost:5173/InteDepContinu/'
 
       # ── Coverage — non bloquant (Codecov outage ne casse pas le deploy) ───

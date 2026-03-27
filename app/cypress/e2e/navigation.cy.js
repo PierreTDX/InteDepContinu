@@ -93,45 +93,37 @@ describe("Navigation and User Registration E2E Tests", () => {
         });
     });
 
-    /* Le test Crash 500 n'est plus testable tel quel en E2E réel 
-       car la vraie API Python ne plantera pas sur demande.*/
+    context("Error Scenario: Server crash (500)", { tags: ['@api-down'] }, () => {
+        it("should display alert and not crash app", () => {
+            // GET /users → server error 500
+            cy.intercept('GET', '**/users').as('getUsers');
 
-    // context("Error Scenario: Server crash (500)", () => {
-    //     it("should display alert and not crash app", () => {
-    //         // GET /users → empty list
-    //         cy.intercept('GET', '**/users', {
-    //             statusCode: 200,
-    //             body: []
-    //         }).as('getUsers');
+            // POST /users → server error 500
+            cy.intercept('POST', '**/users').as('createUserFail');
 
-    //         // POST /users → server error 500
-    //         cy.intercept('POST', '**/users', {
-    //             statusCode: 500
-    //         }).as('createUserFail');
+            cy.wait('@getUsers');
 
-    //         cy.wait('@getUsers');
+            cy.get('[data-cy=nav-register]').click();
 
-    //         cy.get('[data-cy=nav-register]').click();
+            cy.get('[data-cy=firstName]').type("Alice");
+            cy.get('[data-cy=lastName]').type("Durand");
+            cy.get('[data-cy=email]').type("alice@example.com");
+            cy.get('[data-cy=birthDate]').type("1998-01-01");
+            cy.get('[data-cy=zip]').type("75001");
+            cy.get('[data-cy=city]').type("Paris");
 
-    //         cy.get('[data-cy=firstName]').type("Alice");
-    //         cy.get('[data-cy=lastName]').type("Durand");
-    //         cy.get('[data-cy=email]').type("alice@example.com");
-    //         cy.get('[data-cy=birthDate]').type("1998-01-01");
-    //         cy.get('[data-cy=zip]').type("75001");
-    //         cy.get('[data-cy=city]').type("Paris");
+            cy.get('[data-cy=submit]').click();
+            cy.wait('@createUserFail');
 
-    //         cy.get('[data-cy=submit]').click();
-    //         cy.wait('@createUserFail');
+            cy.get('.toast-server-error')
+                .should('be.visible')
+                .and('contain.text', "Serveur indisponible, réessayez plus tard");
 
-    //         cy.get('.toast-server-error')
-    //             .should('be.visible')
-    //             .and('contain.text', "Serveur indisponible, réessayez plus tard");
-
-    //         // Back home works
-    //         cy.get('[data-cy=back-home]').click();
-    //         cy.get('[data-cy=user-count]').should("contain", "0");
-    //     });
-    // });
+            // Back home works
+            cy.get('[data-cy=back-home]').click();
+            cy.get('[data-cy=user-count]').should("contain", "0");
+        });
+    });
 
     context("Scenario: Delete a user", () => {
         it("should delete a user, display success toast and update the list", () => {

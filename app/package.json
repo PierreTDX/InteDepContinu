@@ -21,9 +21,12 @@
     "test": "jest --coverage",
     "doc": "jsdoc -R ../README.md -c jsdoc.json -r -d ./public/docs --private",
     "cypress": "cypress open",
-    "build-npm": "node build-npm.js"
+    "cypress:api-on": "cypress open --expose grepTags=\"-@api-down\"",
+    "build-npm": "node build-npm.js",
+    "cypress:api-down": "cypress open --expose grepTags=\"@api-down\""
   },
   "dependencies": {
+    "@cypress/grep": "^6.0.0",
     "axios": "^1.13.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

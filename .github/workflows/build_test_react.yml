@@ -83,13 +83,20 @@ jobs:
       # ── Cypress e2e (le binaire vient du cache, pas besoin d'install) ──────
       # Note: install: false + cache Cypress ci-dessus remplacent l'ancien
       #       `pnpm exec cypress install` qui était redondant avec cette action
-      - name: Run Cypress tests
+      - name: Run Cypress tests (Nominal & Standard Errors)
         uses: cypress-io/github-action@v7
         with:
           working-directory: ${{ env.APP_DIR }}
           install: false
           wait-on: 'http://localhost:5173/InteDepContinu/'
           env: grepTags="-@api-down"
+
+      - name: Run Cypress tests (API Down Scenarios)
+        uses: cypress-io/github-action@v7
+        with:
+          working-directory: ${{ env.APP_DIR }}
+          install: false
+          env: grepTags="@api-down"
 
       # ── Coverage — non bloquant (Codecov outage ne casse pas le deploy) ───
       - name: Upload coverage to Codecov

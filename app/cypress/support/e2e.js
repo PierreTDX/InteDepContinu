@@ -17,5 +17,4 @@
 import './commands'
 
 // Enregistrement de grep
-const { register: registerCypressGrep } = require('@cypress/grep')
-registerCypressGrep()
+require('@cypress/grep')()

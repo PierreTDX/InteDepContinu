@@ -96,10 +96,10 @@ describe("Navigation and User Registration E2E Tests", () => {
     context("Error Scenario: Server crash (500)", { tags: ['@api-down'] }, () => {
         it("should display alert and not crash app", () => {
             // GET /users → server error 500
-            cy.intercept('GET', '**/users').as('getUsers');
+            cy.intercept('GET', '**/users', { statusCode: 500 }).as('getUsers');
 
             // POST /users → server error 500
-            cy.intercept('POST', '**/users').as('createUserFail');
+            cy.intercept('POST', '**/users', { statusCode: 500 }).as('createUserFail');
 
             cy.wait('@getUsers');
 

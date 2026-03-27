@@ -1,3 +1,8 @@
+/**
+ * @file PersonForm.jsx
+ * Contains the form component for registering a new person.
+ */
+
 import React, { useState } from 'react'
 import { validatePerson, validateAge, validateZipCode, validateCity, validateName, validateEmail } from '../domain/validator'
 import { errorMessages, getErrorMessage } from '../utils/errorMessages'

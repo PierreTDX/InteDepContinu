@@ -1,3 +1,9 @@
+/**
+ * @file App.jsx
+ * Handles routing, global state management for users,
+ * and API orchestration.
+ */
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Home from "./pages/Home";
@@ -56,10 +62,20 @@ function App() {
         setPersons(prev => [...prev, newUser]);
     };
 
+    /**
+     * Remove a person from the application state after successful deletion.
+     *
+     * @function handleUserDeleted
+     * @param {string|number} deletedId - The ID of the deleted person
+     */
+    const handleUserDeleted = (deletedId) => {
+        setPersons(prev => prev.filter(person => String(person.id) !== String(deletedId)));
+    };
+
     return (
         <BrowserRouter basename="/InteDepContinu/">
             <Routes>
-                <Route path="/" element={<Home persons={persons} loading={loading} serverError={serverError} />} />
+                <Route path="/" element={<Home persons={persons} loading={loading} serverError={serverError} onUserDeleted={handleUserDeleted} />} />
                 <Route path="/register" element={<Register addPerson={addPerson} />} />
             </Routes>
         </BrowserRouter>

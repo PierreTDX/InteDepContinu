@@ -1,3 +1,8 @@
+/**
+ * @file ConfirmModal.jsx
+ * Reusable modal component for confirming critical actions.
+ */
+
 import React from 'react';
 import './ConfirmModal.css';
 

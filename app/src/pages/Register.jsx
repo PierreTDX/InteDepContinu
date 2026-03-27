@@ -1,3 +1,8 @@
+/**
+ * @file Register.jsx
+ * Registration page that wraps the PersonForm component.
+ */
+
 import PersonForm from "../components/PersonForm"
 import { Link } from 'react-router-dom';
 import './Register.css'
@@ -16,10 +21,10 @@ import './Register.css'
  *
  * @returns {JSX.Element}
  */
-export default function Register({addPerson}) {
+export default function Register({ addPerson }) {
     return (
         <div className="register-container">
-            <PersonForm addPerson={addPerson}/>
+            <PersonForm addPerson={addPerson} />
             <Link to="/">
                 <button data-cy="back-home" className="back-button">Retour à l'accueil</button>
             </Link>

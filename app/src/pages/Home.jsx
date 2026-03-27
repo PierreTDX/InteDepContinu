@@ -1,3 +1,8 @@
+/**
+ * @file Home.jsx
+ * Main landing page component displaying the user list and deletion functionality.
+ */
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
@@ -5,6 +10,7 @@ import { toast, ToastContainer } from "react-toastify";
 import ConfirmModal from '../components/ConfirmModal';
 import { deleteUser } from '../domain/services/personService';
 import { getErrorMessage } from '../utils/errorMessages';
+import UserList from '../components/UserList';
 
 /**
  * Home Component
@@ -19,7 +25,7 @@ import { getErrorMessage } from '../utils/errorMessages';
  * @param {Array<Object>} props.persons - Array of person objects to display.
  * @param {boolean} [props.loading] - Indicates if the user list is currently loading.
  * @param {string|null} [props.serverError] - Error message to display if fetching users failed.
- * @param {function((string|number)): void} [props.onUserDeleted] - Callback when a user is deleted.
+ * @param {function((string|number)): void} props.onUserDeleted - Callback when a user is deleted.
  *
  * @returns {JSX.Element}
  */
@@ -66,13 +72,14 @@ export default function Home({ persons, loading, serverError, onUserDeleted }) {
         try {
             await deleteUser(personToDelete.id);
             toast.success(getErrorMessage("USER_DELETED"));
-            if (onUserDeleted) {
+            onUserDeleted(personToDelete.id);
+        } catch (error) {
+            if (error.message === "USER_NOT_FOUND") {
+                toast.warn(getErrorMessage("USER_NOT_FOUND"));
                 onUserDeleted(personToDelete.id);
             } else {
-                setTimeout(() => window.location.reload(), 1500);
+                toast.error(getErrorMessage("SERVER_ERROR"));
             }
-        } catch (error) {
-            toast.error(getErrorMessage("SERVER_ERROR"));
         } finally {
             setIsModalOpen(false);
             setPersonToDelete(null);
@@ -116,24 +123,7 @@ export default function Home({ persons, loading, serverError, onUserDeleted }) {
                 </button>
                 <div className="user-table-container">
                     <h3>Liste des utilisateurs inscrits</h3>
-                    {persons.length > 0 ? (
-                        <ul data-cy="user-list" className="user-list">
-                            {persons.map((person, index) => (
-                                <li key={index}>
-                                    <span>{person.firstName} {person.lastName} ({person.email})</span>
-                                    <button
-                                        onClick={() => handleDeleteClick(person)}
-                                        className="delete-button"
-                                        title="Supprimer"
-                                    >
-                                        ❌
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p data-cy="no-users">Aucun utilisateur inscrit pour l'instant.</p>
-                    )}
+                    <UserList persons={persons} onDeleteClick={handleDeleteClick} />
                 </div>
             </div>
             <ToastContainer position="top-right" />

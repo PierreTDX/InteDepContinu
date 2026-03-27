@@ -60,7 +60,16 @@ export async function deleteUser(userId) {
         await axios.delete(`${getApiBase()}/users/${userId}`);
     } catch (error) {
         console.error("Erreur dans deleteUser :", error);
-        throw new Error("SERVER_ERROR");
+
+        if (!error.response || (error.response.status >= 500 && error.response.status < 600)) {
+            throw new Error("SERVER_ERROR");
+        }
+
+        if (error.response?.status === 404) {
+            throw new Error("USER_NOT_FOUND");
+        }
+
+        throw error;
     }
 }
 

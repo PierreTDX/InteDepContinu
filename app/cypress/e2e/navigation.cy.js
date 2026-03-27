@@ -1,3 +1,10 @@
+/**
+ * @file navigation.cy.js
+ * 
+ * Tests the application's End-to-End user flows including registration, 
+ * error handling (e.g., existing email, server crash), and user deletion.
+ */
+
 describe("Navigation and User Registration E2E Tests", () => {
 
     const newUser = {
@@ -8,20 +15,6 @@ describe("Navigation and User Registration E2E Tests", () => {
         zip: "03100",
         city: "Montluçon"
     };
-
-    // const apiUser = {
-    //     id: 11,
-    //     name: "Théo Lafond",
-    //     username: "TheoL",
-    //     email: "theo@example.com",
-    //     birthDate: "2001-09-02",
-    //     address: {
-    //         street: "1 Rue de Test",
-    //         suite: "Apt 101",
-    //         city: "Montluçon",
-    //         zipcode: "03100"
-    //     }
-    // };
 
     beforeEach(() => {
         cy.visit("/");
@@ -155,6 +148,77 @@ describe("Navigation and User Registration E2E Tests", () => {
 
             cy.get('[data-cy=user-list]').should("not.contain", newUser.email);
         });
+
+        it("should display a server error toast if deletion fails (500)", { tags: ['@api-down'] }, () => {
+
+            const mockUsers = [
+                {
+                    id: 1,
+                    firstName: "Théo",
+                    lastName: "Lafond",
+                    email: "theo@example.com"
+                }
+            ];
+
+            // Mock GET → because API down (simulate API up fisrt, and down after)
+            cy.intercept('GET', '**/users', {
+                statusCode: 200,
+                body: mockUsers
+            }).as('getUsers');
+
+            // Mock DELETE → erreur 500
+            cy.intercept('DELETE', '**/users/*', {
+                statusCode: 500
+            }).as('deleteUserFail');
+
+            cy.visit("/");
+            cy.wait('@getUsers');
+
+            cy.contains('li', "Théo Lafond").find('.delete-button').click();
+            cy.get('.btn-confirm').click();
+
+            cy.wait('@deleteUserFail');
+
+            cy.contains("Serveur indisponible, réessayez plus tard").should("be.visible");
+
+            cy.get('[data-cy=user-list]').should("contain", "Théo Lafond");
+        });
+
+        it("should display a warning and remove user if not found on server (404)", () => {
+            const staleUser = {
+                firstName: "Théo",
+                lastName: "Lafond",
+                email: `theo.404@example.com`,
+                birthDate: "2001-09-02",
+                zip: "03100",
+                city: "Montluçon"
+            };
+
+            cy.intercept('GET', '**/users').as('getUsers');
+            cy.intercept('DELETE', '**/users/*').as('deleteUser');
+
+            // create user directly via API to ensure it exists for the test, then delete it to simulate 404 on UI delete
+            cy.request('POST', 'http://127.0.0.1:8000/users', staleUser).then((response) => {
+                const createdUserId = response.body.id;
+
+                cy.visit("/");
+                cy.wait('@getUsers');
+
+                cy.contains('li', "Théo Lafond").should('exist');
+
+                // delete user directly to simulate 404 when UI tries to delete it
+                cy.request('DELETE', `http://127.0.0.1:8000/users/${createdUserId}`);
+
+                cy.contains('li', "Théo Lafond").find('.delete-button').click();
+                cy.get('.btn-confirm').click();
+
+                cy.wait('@deleteUser').its('response.statusCode').should('eq', 404);
+
+                cy.contains("Utilisateur introuvable").should("be.visible");
+
+            });
+        });
+
     });
 
 });

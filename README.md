@@ -114,9 +114,25 @@ Le projet contient des scénarios E2E vérifiant la navigation et la cohérence 
 - Retour à l’Accueil → Vérifier que la liste et le compteur restent inchangés
 
 ### Lancer les tests E2E
+
+Pour ouvrir l'interface graphique de Cypress avec tous les tests :
 ```
 pnpm run cypress
 ```
+
+> **⚠️ Attention :** Tous les tests ne passeront pas forcément avec cette commande, car elle exécute l'ensemble des scénarios en même temps et ne gère pas l'état de l'API (qui devrait être "up" pour certains tests et "down" pour d'autres).
+
+Pour filtrer les tests en fonction de l'état simulé du serveur (via le plugin `@cypress/grep`) :
+
+- Exécuter les tests nominaux et d'erreurs standards (**exclut** les scénarios de crash API) :
+  ```bash
+  pnpm cypress:api-on
+  ```
+- Exécuter **uniquement** les tests simulant un crash serveur (API down) :
+  ```bash
+  pnpm cypress:api-down
+  ```
+
 
 ## Documentation technique
 

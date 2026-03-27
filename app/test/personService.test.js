@@ -181,9 +181,15 @@ describe('personService', () => {
             await expect(deleteUser(1)).rejects.toThrow('SERVER_ERROR');
         });
 
-        it('should throw SERVER_ERROR if server returns 404 (user not found)', async () => {
+        it('should throw USER_NOT_FOUND if server returns 404 (user not found)', async () => {
             axios.delete.mockRejectedValue({ response: { status: 404, data: { message: 'USER_NOT_FOUND' } } });
-            await expect(deleteUser(1)).rejects.toThrow('SERVER_ERROR');
+            await expect(deleteUser(1)).rejects.toThrow('USER_NOT_FOUND');
+        });
+
+        it('should throw original error for unknown status code', async () => {
+            const error = { response: { status: 403, data: {} } };
+            axios.delete.mockRejectedValue(error);
+            await expect(deleteUser(1)).rejects.toBe(error);
         });
     });
 

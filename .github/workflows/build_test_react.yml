@@ -89,6 +89,7 @@ jobs:
           working-directory: ${{ env.APP_DIR }}
           install: false
           wait-on: 'http://localhost:5173/InteDepContinu/'
+          env: grepTags="-@api-down"
 
       # ── Coverage — non bloquant (Codecov outage ne casse pas le deploy) ───
       - name: Upload coverage to Codecov
